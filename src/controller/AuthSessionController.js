@@ -2,52 +2,49 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 const router = express.Router();
-const db = require('../models');  // Path to your Sequelize models
-const User = db.User;  // Import the Tutorial model
+const db = require('../models');
+const User = db.User;
 
 const create = (req, res) => {
-    res.render('signin', {layout: 'layout',
-    })
-}
-const checkUserExists = (email) => {
-    User.findOne({ email:email}).then(user => {
-        if (!user) {
-            return user;
-        }
-        else {
-            return false;
-        }
+    res.render('signin', {
+        layout: 'layout',
     })
 }
 
-const post = (re, res) => {
-    const user = {
-        email: req.body.email,
-        loginpassword: req.body.email
-    };
+const checkUserExists = async (userEmail) => {
+    const user = await User.findOne({ where: { email: userEmail } });
+    return user !== null ? user : false;
+}
 
-    if(checkUserExists()) {
-        bcrypt.compare(loginpassword, user.password)
-        .then(isMatch => {
-            if(isMatch) {
-                req.session.Id = User.id;
-                req.session.firstName = User.firstName;
-                req.session.lastName = User.lastName;
-                
-                res.render('dashboard', {
-                    firstname: req.session.firstName,
-                    lastName: req.session.lastName
-                });
 
+const post = async (req, res) => {
+    const { email, password } = req.body;
+
+    try {
+        const userModel = await checkUserExists(email);
+
+        if (userModel) {
+            const isMatch = await bcrypt.compare(password, userModel.password);
+            if (isMatch) {
+                req.session.Id = userModel.id;
+                req.session.firstName = userModel.firstName;
+                req.session.lastName = userModel.lastName;
+                return res.redirect('/dashboard');
             }
+        }
+
+        return res.render('signin', {
+            errors: 'Invalid log in',
+            formData: { email }
+        });
+
+    } catch (error) {
+        console.error("Error during login:", error);
+        return res.render('signin', {
+            errors: 'An error occurred, please try again later.',
+            formData: { email }
         });
     }
-
-    res.render('signin', {
-        errors: 'Invalid log in',
-        formData: { email }
-    });
-
 }
 
 module.exports = {

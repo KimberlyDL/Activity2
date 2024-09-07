@@ -1,6 +1,8 @@
 const {Router} = require('express');
 const { check, validationResult, body } = require('express-validator');
 const path = require('path')
+const db = require('../models');
+const User = db.User;
 
 module.exports = function(BASE_PATH) {
 
@@ -36,7 +38,8 @@ const validateSignUp = [
 //check if email exists
 const checkUserExists = (req, res, next) => {
     const email = req.body.email;
-    User.findOne({ email: email})
+    console.log(email || 'walaaaa');
+    User.findOne({where: { email: email}})
     .then(user => {
         if(user) {
             req.flash('errors,' [{ msg: 'Email already taken' }]);
@@ -82,6 +85,7 @@ router.get('/', Welcome.index);
 router.get('/signup', RegisterUserController.create);
 router.post('/signup', signUpMiddleware, RegisterUserController.post);
 router.get('/signin', AuthSessionController.create);
+router.post('/signin', AuthSessionController.post);
 router.get('/forgotpassword', RegisterUserController.forgotpassword);
 router.get('/dashboard', DashboardController.index);
 

@@ -1,11 +1,6 @@
 const index = (req, res) => {
-    res.render('dashboard', {layout: 'layout',
-        array: ['a', 'b', 'c', 'd'],
-        message: 'Greeting people of earth!'
-    })
+    res.render('dashboard', {layout: 'layout' })
 }
-
-
 
 module.exports = {
     index
